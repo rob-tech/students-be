@@ -6,18 +6,18 @@ const { MongoClient, ObjectID,  } = require('mongodb')
 const studentSchema = require('./schema')
 const mongoServerURL = 'mongodb://localhost:27017'
 
-// getStudents = async (filter = {}) => {
-//   try {
-//     const mongo = await MongoClient.connect(mongoServerURL, {
-//       useNewUrlParser: true
-//     })
-//     const collection = mongo.db("Students").collection("Students")
-//     const students = collection.find(filter).toArray()
-//     return students ? students : []
-//   } catch (error) {
-//     console.log(error)
-//   }
-// }
+getStudents = async (filter = {}) => {
+  try {
+    const mongo = await MongoClient.connect(mongoServerURL, {
+      useNewUrlParser: true
+    })
+    const collection = mongo.db("Students").collection("Students")
+    const students = collection.find(filter).toArray()
+    return students ? students : []
+  } catch (error) {
+    console.log(error)
+  }
+}
 
 const router = express.Router();
 
