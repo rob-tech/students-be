@@ -2,7 +2,7 @@ const express = require("express");
 // const { parse } = require("url");
 // const fs = require("fs");
 const idGen = require("shortid");
-const { MongoClient, ObjectID,  } = require('mongodb')
+const { MongoClient, ObjectID} = require('mongodb')
 const studentSchema = require('./schema')
 const mongoServerURL = 'mongodb://localhost:27017'
 
@@ -23,123 +23,126 @@ const router = express.Router();
 
 //////Mongo Driver 'GET'///////
 
-// router.get("/", async (req, res) => {
-//   const students = await getStudents(req.query);
-//   res.send(students)
-// })
-
-////////////////////////////////
-
 router.get("/", async (req, res) => {
+  const students = await getStudents(req.query);
+  res.send(students)
+})
+
+//////MONGOOSE GET//////////////
+
+// router.get("/", async (req, res) => {
+//   try {
+//       const students = await studentSchema.find({}, {Projects: 0})
+//       res.send(students)      
+//   } catch (error) {
+//       console.log(error)
+//   }
+// })
+//////////////////////////////////////////
+
+router.get("/:id", async (req, res) => {
   try {
-      const students = await studentSchema.find({}, {projects: 0})
-      res.send(students)
-      console.log(students)
-      
+    const students = await getStudents({ _id: new ObjectID(req.params.id) });
+    res.send(students)
   } catch (error) {
-      console.log(error.body)
+    res.send("id not found")
   }
 })
 
-// router.get("/:id", async (req, res) => {
-//   try {
-//     const students = await getStudents({ _id: new ObjectID(req.params.id) });
-//     res.send(students)
-//   } catch (error) {
-//     res.send("id not found")
-//   }
-// })
-
-// router.post("/", async (req, res) => {
-//   try {
-//     const mongo = await MongoClient.connect(mongoServerURL, {
-//       useNewUrlParser: true
-//     })
-//     const collection = mongo.db("Students").collection("Students")
-//     const { insertedId } = await collection.insertOne(req.body)
-//     res.send(insertedId)
-//   } catch (error) {
-//     res.send(error)
-//   }
-// })
-
-// router.put("/:id", async (req, res) => {
-//   try {
-//     const mongo = await MongoClient.connect(mongoServerURL, {
-//       useNewUrlParser: true
-//     })
-
-//     const collection = mongo.db("Students").collection("Students")
-
-//     const { modifiedCount } = await collection.updateOne({ _id: new ObjectID(req.params.id) })
-
-//     if (modifiedCount > 0) {
-//       res.send('OK')
-//     } else {
-//       res.send('NOTHING TO MODIFY')
-//     }
-
-//   } catch (error) {
-
-//   }
-// })
-
-// router.delete("/:id", async (req, res) => {
-//   try {
-//     const mongo = await MongoClient.connect(mongoServerURL, {
-//       useNewUrlParser: true
-//     })
-//     const collection = mongo.db("Students").collection("Students")
-//     const { deletedCount } = await collection.deleteOne({ _id: new ObjectID(req.params.id) });
-//     if (deletedCount > 0) {
-//       res.send('OK')
-//     } else {
-//       res.send('NOTHING TO DELETE')
-//     }
-//   } catch (error) {
-//   }
-// })
-
-// router.get("/:id/projects", async (req, res) => {
-//   try {
-//     const student = await getStudents({ _id: new ObjectID(req.params.id) });
-//     console.log(student)
-//     var projects = student[0].Projects
-//     console.log(projects)
-//     res.send(projects)
-//   } catch (error) {
-//     res.send("id not found")
-//   }
-// })
-
-// router.post("/:id/projects", async (req, res) => {
-//   try {
-//     const mongo = await MongoClient.connect(mongoServerURL, {
-//       useNewUrlParser: true
-//     })
-//     const collection = mongo.db("Students").collection("Students")
-//     req.body.id = idGen.generate();
-//     const project = await collection.updateOne({ _id: new ObjectID(req.params.id)}, {$push: {Projects: req.body}} )
-//     res.send(project)    
-//   } catch (error) {
-//     res.send(error.body)
-//   }
-// })
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
-router.delete(":id/projects/:projectId", async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     const mongo = await MongoClient.connect(mongoServerURL, {
       useNewUrlParser: true
     })
     const collection = mongo.db("Students").collection("Students")
-    // const project = await collection.updateOne({ _id: new ObjectID(req.params.id)}, {$pull: {Projects: {id: req.params.projectId} }} )
-    const project = await collection.deleteOne({ _id: req.params.id, $pull:{"Projects._id": req.params.projectId}})
-    res.send(project)
+    const { insertedId } = await collection.insertOne(req.body)
+    res.send(insertedId)
+  } catch (error) {
+    res.send(error)
+  }
+})
+
+router.put("/:id", async (req, res) => {
+  try {
+    const mongo = await MongoClient.connect(mongoServerURL, {
+      useNewUrlParser: true
+    })
+
+    const collection = mongo.db("Students").collection("Students")
+
+    const { modifiedCount } = await collection.updateOne({ _id: new ObjectID(req.params.id) })
+
+    if (modifiedCount > 0) {
+      res.send('OK')
+    } else {
+      res.send('NOTHING TO MODIFY')
+    }
+
+  } catch (error) {
+
+  }
+})
+
+router.delete("/:id", async (req, res) => {
+  try {
+    const mongo = await MongoClient.connect(mongoServerURL, {
+      useNewUrlParser: true
+    })
+    const collection = mongo.db("Students").collection("Students")
+    const { deletedCount } = await collection.deleteOne({ _id: new ObjectID(req.params.id) });
+    if (deletedCount > 0) {
+      res.send('OK')
+    } else {
+      res.send('NOTHING TO DELETE')
+    }
   } catch (error) {
   }
 })
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+///PROJECTS ROUTE
+
+router.get("/:id/projects", async (req, res) => {
+  try {
+    const student = await getStudents({ _id: new ObjectID(req.params.id) });
+    console.log(student)
+    var projects = student[0].Projects
+    console.log(projects)
+    res.send(projects)
+  } catch (error) {
+    res.send("id not found")
+  }
+})
+
+router.post("/:id/projects", async (req, res) => {
+  try {
+    const mongo = await MongoClient.connect(mongoServerURL, {
+      useNewUrlParser: true
+    })
+    const collection = mongo.db("Students").collection("Students")
+    req.body.id = idGen.generate();
+    const project = await collection.updateOne({ _id: new ObjectID(req.params.id)}, {$push: {Projects: req.body}} )
+    res.send(project)    
+  } catch (error) {
+    res.send(error.body)
+  }
+})
+
+router.delete("/:id/projects/:projectId", async (req, res) => {
+  try {
+    const mongo = await MongoClient.connect(mongoServerURL, {
+      useNewUrlParser: true
+    })
+    const collection = mongo.db("Students").collection("Students")
+    console.log(collection)
+    const project = await collection.updateOne({ _id: new ObjectID(req.params.id)}, {$pull: {Projects: {id: req.params.projectId} }} )
+    res.send("OK")
+    
+  } catch (error) {
+    console.log(error)
+  }
+
+})
+
 
 
 
